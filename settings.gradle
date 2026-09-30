@@ -1,0 +1,13 @@
+pluginManagement {
+	repositories {
+		maven {
+			name = 'Fabric'
+			url = 'https://maven.fabricmc.net/'
+		}
+		mavenCentral()
+		gradlePluginPortal()
+	}
+}
+
+// 本项目是完全独立的 gradle 构建（不在任何聚合构建内），可单独 checkout / 构建 / 发布。
+rootProject.name = 'random_drops'

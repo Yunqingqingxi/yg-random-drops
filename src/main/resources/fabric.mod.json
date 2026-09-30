@@ -1,0 +1,26 @@
+{
+	"schemaVersion": 1,
+	"id": "yg_drops",
+	"version": "${version}",
+	"name": "yunxigames 随机掉落",
+	"description": "把方块掉落与生物掉落全部替换成随机结果：随机物品或随机生物。挖泥土可能掉出钻石，也可能掉出一只僵尸。含暴击/保底/进度分档/精英怪/通关结算/掉落合并/TNT甩射/伐木断肢/分层掉落。",
+	"authors": [
+		"Yunqingqingxi"
+	],
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.yunxigames.YunxiGamesDrops"
+		]
+	},
+	"mixins": [
+		"yg-drops.mixins.json"
+	],
+	"depends": {
+		"fabricloader": "~0.19.5",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

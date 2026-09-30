@@ -1,0 +1,83 @@
+// yg-drops（random_drops）—— 随机掉落玩法包，完全独立的 gradle 构建。
+//
+// 插件 id 必须是 `net.fabricmc.fabric-loom`（NoRemap 变体），不是 `fabric-loom`（完整版）。
+// 原因：26.2 是自定义 MC 版本，分发时已是「官方命名」形态，无 yarn/intermediary 映射。
+// 完整版 loom 强制要求 mappings 有依赖；NoRemap 变体不需要 mappings，依赖用普通 implementation。
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+}
+
+group = 'com.yunxigames'
+version = project.mod_version
+
+base {
+	archivesName = "yg-drops"
+}
+
+loom {
+	mods {
+		"yg_drops" {
+			sourceSet sourceSets.main
+		}
+	}
+}
+
+repositories {
+	// 阿里云镜像（代理 mavenCentral，国内拉 JUnit 等测试依赖快）
+	maven {
+		name = 'Aliyun'
+		url = 'https://maven.aliyun.com/repository/public'
+	}
+	maven {
+		name = 'Fabric'
+		url = 'https://maven.fabricmc.net/'
+	}
+	mavenCentral()
+}
+
+// JDK 24 字节码（工具链无关，仅控制 release）
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 24
+}
+
+// fabric.mod.json 的版本占位展开
+tasks.withType(ProcessResources).configureEach {
+	def ver = project.version
+	inputs.property "version", ver
+	filesMatching("fabric.mod.json") {
+		expand "version": ver
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+}
+
+// ---- 测试（JUnit 5）----
+// ./gradlew test       全量：冒烟 + 单元 + 回归
+// ./gradlew smokeTest  只跑 @Tag("smoke")：验证「包立不立得起来」的最小事实
+dependencies {
+	testImplementation platform('org.junit:junit-bom:5.10.2')
+	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.withType(Test).configureEach {
+	useJUnitPlatform()
+	testLogging {
+		events 'failed', 'skipped'
+		showStandardStreams = false
+	}
+}
+
+tasks.register('smokeTest', Test) {
+	group = 'verification'
+	description = '只跑冒烟测试（@Tag("smoke")）'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	useJUnitPlatform {
+		includeTags 'smoke'
+	}
+}

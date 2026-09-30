@@ -1,0 +1,17 @@
+{
+	"required": true,
+	"package": "com.yunxigames.drops.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": [
+		"BlockDropsMixin",
+		"LivingEntityDropsMixin",
+		"ItemMergeMixin",
+		"FallDamageMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}

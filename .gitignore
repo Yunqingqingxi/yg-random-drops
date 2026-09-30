@@ -1,0 +1,9 @@
+# gradle
+.gradle/
+build/
+
+# 服务器工作目录（eula / world / config 是机器本地状态，不入库）
+run/
+
+# 日志
+*.log
