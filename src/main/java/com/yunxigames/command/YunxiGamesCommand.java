@@ -14,7 +14,12 @@ import net.minecraft.server.permissions.PermissionCheck;
 import net.minecraft.server.permissions.Permissions;
 
 /**
- * {@code /yg ...}（随机掉落包主命令）：游戏内查看状态、重载配置、快速开关。
+ * {@code /yg ...}（随机掉落包主命令）：游戏内查看状态、重载配置、快速启停。
+ *
+ * <p>命令树是系列统一的「{@code /yg <玩法名>}」布局：每个玩法包都往 {@code /yg} 根下
+ * 挂一个以玩法名命名的子树（本包是 {@code /yg drops}），Brigadier 会把各包注册的
+ * 同名根节点合并成一棵命令树 —— 装了几个包，{@code /yg} 下就有几个玩法子树。
+ * 旧的顶层快捷方式（{@code /yg on|off} / {@code reload} / {@code selftest}）保留兼容。
  */
 public final class YunxiGamesCommand {
 	/** 26.2 的新权限 API：等价于旧的「权限等级 2」。 */
@@ -41,17 +46,33 @@ public final class YunxiGamesCommand {
 						.executes(context -> toggle(context.getSource(), true)))
 				.then(Commands.literal("off")
 						.executes(context -> toggle(context.getSource(), false)))
-				.then(Commands.literal("selftest")
-						.executes(context -> selfTest(context.getSource())));
+			.then(Commands.literal("selftest")
+					.executes(context -> selfTest(context.getSource())))
+			// 系列统一布局：/yg drops ...（与顶层 on|off 同义，方便和其它玩法包的子树对照记忆）
+			.then(Commands.literal("drops")
+					.executes(context -> status(context.getSource()))
+					.then(Commands.literal("on")
+							.executes(context -> toggle(context.getSource(), true)))
+					.then(Commands.literal("off")
+							.executes(context -> toggle(context.getSource(), false))));
 
 		dispatcher.register(root);
 	}
 
+	/**
+	 * 整体启停随机掉落。
+	 *
+	 * <p><b>必须同时切方块与生物两个开关</b>：玩法核心是「掉落随机化」，off 的语义是
+	 * 掉落恢复原样 —— 只关 {@code enableBlockDrops} 的话生物还在掉随机物品，等于没关。
+	 * TNT 引燃 / 断肢这类独立事件有自己的开关，不受这里影响（回显里能看出它们仍然开着）。
+	 */
 	private static int toggle(CommandSourceStack source, boolean enabled) {
 		DropsConfig config = DropsConfig.get();
 		config.enableBlockDrops = enabled;
+		config.enableMobDrops = enabled;
 		config.save();
-		source.sendSuccess(() -> Component.literal("[yg] 方块掉落随机化：" + (enabled ? "开启" : "关闭")), false);
+		source.sendSuccess(() -> Component.literal("[yg] 随机掉落整体：" + (enabled ? "开启" : "关闭")
+				+ "（方块 + 生物，掉落恢复" + (enabled ? "随机化" : "原样") + "）"), false);
 		return status(source);
 	}
 
